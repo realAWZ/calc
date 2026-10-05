@@ -39,7 +39,7 @@
       padding-bottom: max(env(safe-area-inset-bottom, 20px), 16px);
     }
 
-    /* Top Action Bar (iOS 18) */
+    /* Top Native Controls (iOS 18) */
     .top-bar {
       position: absolute;
       top: max(env(safe-area-inset-top, 48px), 44px);
@@ -49,13 +49,13 @@
       margin: 0 auto;
       display: flex;
       justify-content: space-between;
-      padding: 0 20px;
+      padding: 0 16px;
       z-index: 30;
       pointer-events: auto;
     }
     .icon-btn {
-      width: 40px;
-      height: 40px;
+      width: 42px;
+      height: 42px;
       border-radius: 50%;
       background: rgba(255, 255, 255, 0.12);
       display: flex;
@@ -64,14 +64,14 @@
       cursor: pointer;
     }
     .icon-btn svg {
-      width: 19px;
-      height: 19px;
+      width: 20px;
+      height: 20px;
       fill: none;
       stroke: #ffffff;
       stroke-width: 1.8;
       stroke-linecap: round;
       stroke-linejoin: round;
-      opacity: 0.85;
+      opacity: 0.9;
     }
     .icon-btn:active {
       background: rgba(255, 255, 255, 0.25);
@@ -88,9 +88,9 @@
     }
     #expression {
       color: #8e8e93;
-      font-size: 1.8rem;
+      font-size: 1.85rem;
       font-weight: 400;
-      min-height: 2.2rem;
+      min-height: 2.3rem;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -98,14 +98,14 @@
       margin-bottom: 2px;
     }
     #display {
-      font-size: 4.8rem;
+      font-size: 5.2rem;
       font-weight: 300;
-      letter-spacing: -1px;
+      letter-spacing: -1.2px;
       white-space: nowrap;
       line-height: 1.05;
     }
 
-    /* Keypad Grid - Locked to exact 4-column layout */
+    /* Keypad Grid */
     .grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -118,27 +118,27 @@
       aspect-ratio: 1 / 1;
       border-radius: 50%;
       border: none;
-      font-size: 2.1rem;
+      font-size: 2.2rem;
       font-weight: 400;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       outline: none;
-      transition: filter 0.05s ease;
+      transition: background-color 0.1s, filter 0.05s ease;
     }
     button:active {
       filter: brightness(1.35);
     }
 
     .btn-num { background: #2f2f31; color: #ffffff; }
-    .btn-func { background: #505052; color: #ffffff; font-size: 1.75rem; }
-    .btn-op { background: #ff9f0a; color: #ffffff; font-size: 2.4rem; padding-bottom: 3px; }
-    .btn-op.active { background: #ffffff; color: #ff9f0a; }
+    .btn-func { background: #505052; color: #ffffff; font-size: 1.85rem; }
+    .btn-op { background: #ff9f0a; color: #ffffff; font-size: 2.6rem; padding-bottom: 3px; }
+    .btn-op.active { background: #ffffff !important; color: #ff9f0a !important; }
 
     .backspace-icon {
-      width: 25px;
-      height: 25px;
+      width: 26px;
+      height: 26px;
       stroke: #ffffff;
       stroke-width: 1.8;
       fill: none;
@@ -182,28 +182,28 @@
           <line x1="12" y1="9" x2="18" y2="15"/>
         </svg>
       </button>
-      <button class="btn-func" onclick="pressAC()">AC</button>
-      <button class="btn-func">%</button>
-      <button class="btn-op" id="btn-div" onclick="setOp('÷')">÷</button>
+      <button class="btn-func" id="btn-clear" onclick="pressClear()">AC</button>
+      <button class="btn-func" onclick="pressPercent()">%</button>
+      <button class="btn-op" id="op-div" onclick="setOp('÷')">÷</button>
 
       <button class="btn-num" onclick="pressKey('7')">7</button>
       <button class="btn-num" onclick="pressKey('8')">8</button>
       <button class="btn-num" onclick="pressKey('9')">9</button>
-      <button class="btn-op" id="btn-mul" onclick="setOp('×')">×</button>
+      <button class="btn-op" id="op-mul" onclick="setOp('×')">×</button>
 
       <button class="btn-num" onclick="pressKey('4')">4</button>
       <button class="btn-num" onclick="pressKey('5')">5</button>
       <button class="btn-num" onclick="pressKey('6')">6</button>
-      <button class="btn-op" id="btn-sub" onclick="setOp('−')">−</button>
+      <button class="btn-op" id="op-sub" onclick="setOp('−')">−</button>
 
       <button class="btn-num" onclick="pressKey('1')">1</button>
       <button class="btn-num" onclick="pressKey('2')">2</button>
       <button class="btn-num" onclick="pressKey('3')">3</button>
-      <button class="btn-op" id="btn-add" onclick="setOp('+')">+</button>
+      <button class="btn-op" id="op-add" onclick="setOp('+')">+</button>
 
       <button class="btn-num" onclick="pressPlusMinus()">+/-</button>
       <button class="btn-num" onclick="pressKey('0')">0</button>
-      <button class="btn-num">.</button>
+      <button class="btn-num" onclick="pressDecimal()">.</button>
       <button class="btn-op" onclick="evaluateResult()">=</button>
     </div>
   </div>
@@ -212,8 +212,10 @@
     let runningVal = null;
     let currentInput = "0";
     let pendingOp = null;
-    let exprHistory = "";
-    
+    let fullExpression = "";
+    let isWaitingForNextNumber = false;
+
+    // Force Engine parameters
     let isForcing = false;
     let forceDigits = [];
     let forceIndex = 0;
@@ -222,7 +224,7 @@
     function getTargetTimestamp() {
       const now = new Date();
       const m = String(now.getMonth() + 1);
-      const d = String(now.getDate());
+      const d = String(now.getDate()).padStart(2, '0');
       const y = String(now.getFullYear()).slice(-2);
       
       let hr = now.getHours() % 12;
@@ -233,19 +235,23 @@
     }
 
     function formatNumber(str) {
-      const cleaned = str.replace(/,/g, '');
-      const num = parseFloat(cleaned);
-      if (isNaN(num)) return str;
-      return num.toLocaleString();
+      if (!str || str === "-") return str;
+      const parts = str.toString().split(".");
+      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      return parts.join(".");
     }
 
     function fitFont() {
       const d = document.getElementById("display");
       const len = d.innerText.length;
-      if (len > 11) d.style.fontSize = "2.5rem";
+      if (len > 11) d.style.fontSize = "2.6rem";
       else if (len > 8) d.style.fontSize = "3.4rem";
-      else if (len > 6) d.style.fontSize = "4.0rem";
-      else d.style.fontSize = "4.8rem";
+      else if (len > 6) d.style.fontSize = "4.2rem";
+      else d.style.fontSize = "5.2rem";
+    }
+
+    function clearActiveOps() {
+      document.querySelectorAll('.btn-op').forEach(btn => btn.classList.remove('active'));
     }
 
     function peekCounter() {
@@ -262,44 +268,79 @@
       }, 1500);
     }
 
-    function pressKey(num) {
+    function pressKey(digit) {
       const disp = document.getElementById("display");
       const expr = document.getElementById("expression");
+      document.getElementById("btn-clear").innerText = "C";
 
       if (isForcing) {
+        clearActiveOps();
         if (forceIndex < forceDigits.length) {
           forcedAccumulator += forceDigits[forceIndex];
           forceIndex++;
           disp.innerText = formatNumber(forcedAccumulator);
-          expr.innerText = exprHistory + formatNumber(forcedAccumulator);
+          expr.innerText = fullExpression + formatNumber(forcedAccumulator);
           fitFont();
         }
         return;
       }
 
-      currentInput = (currentInput === "0") ? num : currentInput + num;
+      if (isWaitingForNextNumber) {
+        currentInput = digit;
+        isWaitingForNextNumber = false;
+        clearActiveOps();
+      } else {
+        currentInput = (currentInput === "0") ? digit : currentInput + digit;
+      }
+
       disp.innerText = formatNumber(currentInput);
+      expr.innerText = fullExpression + formatNumber(currentInput);
       fitFont();
     }
 
+    function pressDecimal() {
+      if (isForcing) return;
+      if (isWaitingForNextNumber) {
+        currentInput = "0.";
+        isWaitingForNextNumber = false;
+        clearActiveOps();
+      } else if (!currentInput.includes(".")) {
+        currentInput += ".";
+      }
+      document.getElementById("display").innerText = formatNumber(currentInput);
+      document.getElementById("expression").innerText = fullExpression + formatNumber(currentInput);
+    }
+
+    function compute(a, b, op) {
+      if (op === '×') return a * b;
+      if (op === '÷') return a / b;
+      if (op === '+') return a + b;
+      if (op === '−') return a - b;
+      return b;
+    }
+
     function setOp(op) {
-      const val = parseFloat(currentInput.replace(/,/g, ''));
+      const current = parseFloat(currentInput.replace(/,/g, ''));
+      clearActiveOps();
+
+      const opMap = { '÷': 'op-div', '×': 'op-mul', '−': 'op-sub', '+': 'op-add' };
+      const btn = document.getElementById(opMap[op]);
+      if (btn) btn.classList.add('active');
 
       if (runningVal === null) {
-        runningVal = val;
-        exprHistory = formatNumber(String(val));
-      } else if (pendingOp) {
-        if (pendingOp === '×') runningVal *= val;
-        if (pendingOp === '+') runningVal += val;
-        if (pendingOp === '−') runningVal -= val;
-        if (pendingOp === '÷') runningVal /= val;
-        exprHistory += `${pendingOp}${formatNumber(String(val))}`;
+        runningVal = current;
+      } else if (!isWaitingForNextNumber && pendingOp) {
+        runningVal = compute(runningVal, current, pendingOp);
+        document.getElementById("display").innerText = formatNumber(String(runningVal));
+        fitFont();
       }
 
       pendingOp = op;
-      exprHistory += op;
-      document.getElementById("expression").innerText = exprHistory;
+      fullExpression = `${formatNumber(String(runningVal))}${op}`;
+      document.getElementById("expression").innerText = fullExpression;
+      isWaitingForNextNumber = true;
 
+      // Arm force mode when '+' is tapped
       if (op === '+') {
         const target = getTargetTimestamp();
         let delta = target - runningVal;
@@ -310,61 +351,78 @@
         forcedAccumulator = "";
         isForcing = true;
       }
-
-      currentInput = "0";
-      document.getElementById("display").innerText = formatNumber(String(runningVal));
-      fitFont();
     }
 
     function evaluateResult() {
+      clearActiveOps();
       const disp = document.getElementById("display");
       const expr = document.getElementById("expression");
 
-      let addedVal = isForcing ? parseFloat(forcedAccumulator) : parseFloat(currentInput.replace(/,/g, ''));
-      if (isNaN(addedVal)) addedVal = 0;
+      let added = isForcing ? parseFloat(forcedAccumulator) : parseFloat(currentInput.replace(/,/g, ''));
+      if (isNaN(added)) added = 0;
 
-      const finalTotal = (runningVal || 0) + addedVal;
-      
-      expr.innerText = exprHistory + formatNumber(String(addedVal));
-      disp.innerText = formatNumber(String(finalTotal));
+      let total = runningVal !== null ? compute(runningVal, added, pendingOp || '+') : added;
+
+      expr.innerText = fullExpression + formatNumber(String(added));
+      disp.innerText = formatNumber(String(total));
       fitFont();
 
-      isForcing = false;
-      runningVal = finalTotal;
-      currentInput = String(finalTotal);
+      runningVal = total;
+      currentInput = String(total);
       pendingOp = null;
+      isWaitingForNextNumber = true;
+      isForcing = false;
+      document.getElementById("btn-clear").innerText = "AC";
     }
 
-    function pressAC() {
-      runningVal = null;
-      currentInput = "0";
-      pendingOp = null;
-      exprHistory = "";
-      isForcing = false;
-      forceDigits = [];
-      forceIndex = 0;
-      forcedAccumulator = "";
-
-      document.getElementById("expression").innerText = "";
-      document.getElementById("display").innerText = "0";
+    function pressClear() {
+      const btn = document.getElementById("btn-clear");
+      if (btn.innerText === "C") {
+        currentInput = "0";
+        document.getElementById("display").innerText = "0";
+        document.getElementById("expression").innerText = fullExpression;
+        btn.innerText = "AC";
+      } else {
+        runningVal = null;
+        currentInput = "0";
+        pendingOp = null;
+        fullExpression = "";
+        isWaitingForNextNumber = false;
+        isForcing = false;
+        forceDigits = [];
+        forceIndex = 0;
+        forcedAccumulator = "";
+        clearActiveOps();
+        document.getElementById("expression").innerText = "";
+        document.getElementById("display").innerText = "0";
+      }
       fitFont();
     }
 
     function pressBackspace() {
-      if (isForcing) return;
+      if (isForcing || isWaitingForNextNumber) return;
       if (currentInput.length > 1) {
         currentInput = currentInput.slice(0, -1);
       } else {
         currentInput = "0";
+        document.getElementById("btn-clear").innerText = "AC";
       }
       document.getElementById("display").innerText = formatNumber(currentInput);
+      document.getElementById("expression").innerText = fullExpression + (currentInput === "0" ? "" : formatNumber(currentInput));
       fitFont();
     }
 
     function pressPlusMinus() {
-      if (isForcing || currentInput === "0") return;
+      if (isForcing) return;
       currentInput = currentInput.startsWith("-") ? currentInput.slice(1) : "-" + currentInput;
-      document.getElementById("display").innerText = currentInput;
+      document.getElementById("display").innerText = formatNumber(currentInput);
+    }
+
+    function pressPercent() {
+      if (isForcing) return;
+      const num = parseFloat(currentInput.replace(/,/g, '')) / 100;
+      currentInput = String(num);
+      document.getElementById("display").innerText = formatNumber(currentInput);
     }
   </script>
 </body>
