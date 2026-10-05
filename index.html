@@ -53,7 +53,7 @@
       background: #2c2c2e;
     }
 
-    /* Keypad Grid & Display Layout */
+    /* Main Container */
     .calc-screen {
       position: absolute;
       bottom: max(env(safe-area-inset-bottom, 22px), 18px);
@@ -66,11 +66,12 @@
       justify-content: flex-end;
     }
 
-    /* Display Area - Right margin aligned to image 19 */
+    /* Display Area - Directly spans entire width with zero right-side pinch */
     .display-area {
       width: 100%;
       text-align: right;
-      padding: 0 10px 4px 0;
+      padding-right: 4px;
+      margin-bottom: 2px;
       display: flex;
       flex-direction: column;
       justify-content: flex-end;
@@ -151,11 +152,8 @@
     <!-- 1:1 Matching SF Symbol Calculator Icon from Image 20 -->
     <div class="icon-btn" onclick="configureTarget(event)">
       <svg width="20" height="24" viewBox="0 0 20 24">
-        <!-- Solid white rounded casing -->
         <rect x="2" y="1.5" width="16" height="21" rx="4.5" fill="#ffffff"/>
-        <!-- Top dark display visor cutout -->
         <rect x="4.2" y="3.8" width="11.6" height="4.2" rx="1.5" fill="#1c1c1e"/>
-        <!-- 3x3 circular cutout keypad matrix -->
         <circle cx="5.8" cy="11.2" r="1.25" fill="#1c1c1e"/>
         <circle cx="10" cy="11.2" r="1.25" fill="#1c1c1e"/>
         <circle cx="14.2" cy="11.2" r="1.25" fill="#1c1c1e"/>
