@@ -29,22 +29,22 @@
       inset: 0;
     }
 
-    /* Top Action Bar - Shifted down to match iOS 18 status bar buffer */
+    /* Top Action Bar (iOS 18) */
     .top-bar {
       position: absolute;
-      top: 72px;
+      top: 62px;
       left: 0;
       right: 0;
       display: flex;
       justify-content: space-between;
-      padding: 0 16px;
+      padding: 0 20px;
       z-index: 40;
     }
     .icon-btn {
-      width: 40px;
-      height: 40px;
+      width: 38px;
+      height: 38px;
       border-radius: 50%;
-      background: rgba(255, 255, 255, 0.16);
+      background: rgba(255, 255, 255, 0.15);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -57,7 +57,7 @@
     /* Keypad & Display Container */
     .calc-screen {
       position: absolute;
-      bottom: 8px;
+      bottom: 10px;
       left: 0;
       right: 0;
       width: 100vw;
@@ -71,7 +71,7 @@
     .display-area {
       width: 100%;
       text-align: right;
-      padding: 0 4px 6px 0;
+      padding: 0 6px 14px 0;
       display: flex;
       flex-direction: column;
       justify-content: flex-end;
@@ -92,7 +92,7 @@
     #display {
       font-size: 5.6rem;
       font-weight: 350;
-      letter-spacing: -0.5px;
+      letter-spacing: -0.6px;
       white-space: nowrap;
       line-height: 1.02;
       color: #ffffff;
@@ -146,7 +146,7 @@
   <div class="top-bar">
     <!-- Clock (Secret Peek Trigger) -->
     <div class="icon-btn" onclick="peekCounter(event)">
-      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" opacity="0.95">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" opacity="0.95">
         <circle cx="12" cy="12" r="9"/>
         <polyline points="12 7 12 12 15 14"/>
       </svg>
@@ -154,7 +154,7 @@
     
     <!-- SF Symbol Calculator Icon -->
     <div class="icon-btn" onclick="configureTarget(event)">
-      <svg width="21" height="25" viewBox="0 0 20 24">
+      <svg width="20" height="24" viewBox="0 0 20 24">
         <rect x="2" y="1.5" width="16" height="21" rx="4.5" fill="#ffffff"/>
         <rect x="4.2" y="3.8" width="11.6" height="4.2" rx="1.5" fill="#202022"/>
         <circle cx="5.8" cy="11.2" r="1.25" fill="#202022"/>
