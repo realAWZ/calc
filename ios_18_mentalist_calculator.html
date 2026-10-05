@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Calculator">
+  <meta name="theme-color" content="#000000">
+  <title>Calculator</title>
+  <style>
+    /* Suppress 3rd party injector badges */
+    div[class*="netlify"], iframe[id*="netlify"], #netlify-badge {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+
+    html, body {
+      background-color: #000000;
+      color: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", sans-serif;
+      width: 100vw;
+      height: 100dvh;
+      overflow: hidden;
+      position: fixed;
+      inset: 0;
+    }
+
+    .calc-container {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      height: 100%;
+      width: 100%;
+      max-width: 430px;
+      margin: 0 auto;
+      padding-bottom: max(env(safe-area-inset-bottom, 24px), 20px);
+    }
+
+    /* Top Native Controls (iOS 18) */
+    .top-bar {
+      position: absolute;
+      top: max(env(safe-area-inset-top, 48px), 44px);
+      left: 0;
+      right: 0;
+      max-width: 430px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 18px;
+      z-index: 50;
+      pointer-events: auto;
+    }
+
+    .icon-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border: none;
+      outline: none;
+      transition: background-color 0.1s ease;
+    }
+
+    .icon-btn:active {
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    .icon-btn svg {
+      width: 21px;
+      height: 21px;
+      fill: none;
+      stroke: #ffffff;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      opacity: 0.9;
+    }
+
+    /* Display Area */
+    .display-area {
+      padding: 0 24px 8px;
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      width: 100%;
+      min-height: 120px;
+    }
+
+    #expression {
+      color: #8e8e93;
+      font-size: 1.95rem;
+      font-weight: 400;
+      min-height: 2.3rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      letter-spacing: -0.3px;
+      margin-bottom: 2px;
+      transition: color 0.15s ease;
+    }
+
+    #expression.peek-highlight {
+      color: #ff9f0a !important;
+      font-weight: 600;
+    }
+
+    #display {
+      font-size: 5.4rem;
+      font-weight: 300;
+      letter-spacing: -1.2px;
+      white-space: nowrap;
+      line-height: 1.05;
+      color: #ffffff;
+    }
+
+    /* Keypad Grid (4 x 5) */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      padding: 0 16px;
+      width: 100%;
+    }
+
+    button {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      border-radius: 50%;
+      border: none;
+      font-size: 2.35rem;
+      font-weight: 400;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      outline: none;
+      font-family: inherit;
+      transition: background-color 0.1s ease, filter 0.05s ease;
+    }
+
+    button:active {
+      filter: brightness(1.35);
+    }
+
+    .btn-num {
+      background: #2f2f31;
+      color: #ffffff;
+    }
+
+    .btn-func {
+      background: #505052;
+      color: #ffffff;
+      font-size: 1.85rem;
+    }
+
+    .btn-op {
+      background: #ff9f0a;
+      color: #ffffff;
+      font-size: 2.7rem;
+      padding-bottom: 3px;
+    }
+
+    .btn-op.active {
+      background: #ffffff !important;
+      color: #ff9f0a !important;
+    }
+
+    .backspace-icon {
+      width: 27px;
+      height: 27px;
+      stroke: #ffffff;
+      stroke-width: 1.8;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top System Bar -->
+  <header class="top-bar">
+    <!-- Secret Peek Trigger -->
+    <button class="icon-btn" id="btnClockPeek" aria-label="History">
+      <svg viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="9"/>
+        <polyline points="12 7 12 12 15 14"/>
+      </svg>
+    </button>
+
+    <!-- Calculator Mode Icon -->
+    <button class="icon-btn" aria-label="Calculator Mode">
+      <svg viewBox="0 0 24 24">
+        <rect x="4" y="3" width="16" height="18" rx="2"/>
+        <line x1="8" y1="7" x2="16" y2="7"/>
+        <line x1="8" y1="11" x2="10" y2="11"/>
+        <line x1="14" y1="11" x2="16" y2="11"/>
+        <line x1="8" y1="15" x2="10" y2="15"/>
+        <line x1="14" y1="15" x2="16" y2="15"/>
+      </svg>
+    </button>
+  </header>
+
+  <main class="calc-container">
+    <div class="display-area">
+      <div id="expression"></div>
+      <div id="display">0</div>
+    </div>
+
+    <div class="grid">
+      <!-- Row 1 -->
+      <button class="btn-func" id="btnBackspace">
+        <svg class="backspace-icon" viewBox="0 0 24 24">
+          <path d="M21 4H8l-6 8 6 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/>
+          <line x1="18" y1="9" x2="12" y2="15"/>
+          <line x1="12" y1="9" x2="18" y2="15"/>
+        </svg>
+      </button>
+      <button class="btn-func" id="btnAC">AC</button>
+      <button class="btn-func" id="btnPercent">%</button>
+      <button class="btn-op" id="btnDiv" data-op="÷">÷</button>
+
+      <!-- Row 2 -->
+      <button class="btn-num" data-num="7">7</button>
+      <button class="btn-num" data-num="8">8</button>
+      <button class="btn-num" data-num="9">9</button>
+      <button class="btn-op" id="btnMul" data-op="×">×</button>
+
+      <!-- Row 3 -->
+      <button class="btn-num" data-num="4">4</button>
+      <button class="btn-num" data-num="5">5</button>
+      <button class="btn-num" data-num="6">6</button>
+      <button class="btn-op" id="btnSub" data-op="−">−</button>
+
+      <!-- Row 4 -->
+      <button class="btn-num" data-num="1">1</button>
+      <button class="btn-num" data-num="2">2</button>
+      <button class="btn-num" data-num="3">3</button>
+      <button class="btn-op" id="btnAdd" data-op="+">+</button>
+
+      <!-- Row 5 -->
+      <button class="btn-num" id="btnPlusMinus">+/−</button>
+      <button class="btn-num" data-num="0">0</button>
+      <button class="btn-num" id="btnDot">.</button>
+      <button class="btn-op" id="btnEquals">=</button>
+    </div>
+  </main>
+
+  <script>
+    // State Variables
+    let currentInput = "0";
+    let runningVal = null;
+    let pendingOp = null;
+    let fullExpression = "";
+    let isWaitingForNext = false;
+
+    // Force Engine State
+    let isForcing = false;
+    let forcedTarget = 0;
+    let forcedDigits = [];
+    let forceIndex = 0;
+    let forcedInput = "";
+    let peekTimer = null;
+
+    // Elements
+    const dispEl = document.getElementById("display");
+    const exprEl = document.getElementById("expression");
+    const btnAC = document.getElementById("btnAC");
+    const opBtns = {
+      '÷': document.getElementById("btnDiv"),
+      '×': document.getElementById("btnMul"),
+      '−': document.getElementById("btnSub"),
+      '+': document.getElementById("btnAdd")
+    };
+
+    /**
+     * Constructs the exact integer timestamp matching the reference screenshot:
+     * e.g., Oct 3, 2026, 8:38 -> Month: 10, Day: 03 (or 3), Year: 26, Hour: 8 (12-hr), Min: 38 -> 10326838
+     */
+    function getTargetTimestamp() {
+      const now = new Date();
+      const month = String(now.getMonth() + 1);
+      const day = String(now.getDate()).padStart(2, '0');
+      const year = String(now.getFullYear()).slice(-2);
+
+      let hour = now.getHours() % 12;
+      if (hour === 0) hour = 12;
+      const hourStr = String(hour);
+      const minStr = String(now.getMinutes()).padStart(2, '0');
+
+      return parseInt(`${month}${day}${year}${hourStr}${minStr}`, 10);
+    }
+
+    function formatNumber(val) {
+      if (val === null || val === undefined || val === "") return "";
+      const s = val.toString().replace(/,/g, '');
+      const parts = s.split(".");
+      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      return parts.join(".");
+    }
+
+    function fitFont() {
+      const len = dispEl.innerText.length;
+      if (len > 11) dispEl.style.fontSize = "2.6rem";
+      else if (len > 8) dispEl.style.fontSize = "3.4rem";
+      else if (len > 6) dispEl.style.fontSize = "4.2rem";
+      else dispEl.style.fontSize = "5.4rem";
+    }
+
+    function clearActiveOps() {
+      Object.values(opBtns).forEach(b => b.classList.remove('active'));
+    }
+
+    function compute(a, b, op) {
+      switch (op) {
+        case '×': return a * b;
+        case '÷': return b !== 0 ? a / b : 0;
+        case '+': return a + b;
+        case '−': return a - b;
+        default: return b;
+      }
+    }
+
+    /**
+     * Arms the force engine with a guaranteed positive delta
+     */
+    function armForceEngine(currentRunning) {
+      const target = getTargetTimestamp();
+      let delta = target - currentRunning;
+
+      // Positive overflow guard
+      if (delta <= 0) {
+        delta = Math.abs(delta) + 1234567;
+      }
+
+      forcedTarget = target;
+      forcedDigits = String(delta).split('');
+      forceIndex = 0;
+      forcedInput = "";
+      isForcing = true;
+    }
+
+    /**
+     * History Button (Top-Left Clock Icon) PEEK TRIGGER
+     */
+    document.getElementById("btnClockPeek").addEventListener("click", () => {
+      clearTimeout(peekTimer);
+
+      // If user hasn't pressed '+' yet, auto-arm with whatever is currently evaluated!
+      if (!isForcing) {
+        const current = parseFloat(currentInput.replace(/,/g, '')) || 0;
+        const base = (runningVal !== null) ? runningVal : current;
+        armForceEngine(base);
+      }
+
+      const remaining = forcedDigits.length - forceIndex;
+      const count = remaining > 0 ? remaining : forcedDigits.length;
+
+      exprEl.classList.add("peek-highlight");
+      exprEl.innerText = `[ Tap ${count} digits ]`;
+
+      peekTimer = setTimeout(() => {
+        exprEl.classList.remove("peek-highlight");
+        if (forcedInput.length > 0) {
+          exprEl.innerText = fullExpression + formatNumber(forcedInput);
+        } else {
+          exprEl.innerText = fullExpression;
+        }
+      }, 1400);
+    });
+
+    /**
+     * Digit Button Pressed (0-9)
+     */
+    function handleDigit(digit) {
+      btnAC.innerText = "C";
+
+      // THE MENTALIST INJECTION
+      if (isForcing) {
+        clearActiveOps();
+        if (forceIndex < forcedDigits.length) {
+          forcedInput += forcedDigits[forceIndex];
+          forceIndex++;
+          dispEl.innerText = formatNumber(forcedInput);
+          exprEl.innerText = fullExpression + formatNumber(forcedInput);
+          fitFont();
+        }
+        return;
+      }
+
+      // Normal Calculator Operation
+      if (isWaitingForNext) {
+        currentInput = digit;
+        isWaitingForNext = false;
+        clearActiveOps();
+      } else {
+        currentInput = (currentInput === "0") ? digit : currentInput + digit;
+      }
+
+      dispEl.innerText = formatNumber(currentInput);
+      exprEl.innerText = fullExpression + formatNumber(currentInput);
+      fitFont();
+    }
+
+    /**
+     * Decimal Pressed
+     */
+    function handleDecimal() {
+      if (isForcing) return; // Prevent decimal during forced digit entry
+
+      btnAC.innerText = "C";
+      if (isWaitingForNext) {
+        currentInput = "0.";
+        isWaitingForNext = false;
+        clearActiveOps();
+      } else if (!currentInput.includes(".")) {
+        currentInput += ".";
+      }
+
+      dispEl.innerText = formatNumber(currentInput);
+      exprEl.innerText = fullExpression + formatNumber(currentInput);
+      fitFont();
+    }
+
+    /**
+     * Operator Pressed (+, −, ×, ÷)
+     */
+    function handleOperator(op) {
+      const current = parseFloat(currentInput.replace(/,/g, '')) || 0;
+      clearActiveOps();
+
+      if (opBtns[op]) {
+        opBtns[op].classList.add('active');
+      }
+
+      if (runningVal === null) {
+        runningVal = current;
+      } else if (!isWaitingForNext && pendingOp) {
+        runningVal = compute(runningVal, current, pendingOp);
+        dispEl.innerText = formatNumber(runningVal.toString());
+        fitFont();
+      }
+
+      pendingOp = op;
+      fullExpression = `${formatNumber(runningVal.toString())}${op}`;
+      exprEl.innerText = fullExpression;
+      isWaitingForNext = true;
+
+      // CRITICAL: When '+' is pressed, arm the Force Engine
+      if (op === '+') {
+        armForceEngine(runningVal);
+      } else {
+        isForcing = false;
+      }
+    }
+
+    /**
+     * Equals Pressed
+     */
+    function handleEquals() {
+      clearActiveOps();
+      btnAC.innerText = "AC";
+
+      if (isForcing) {
+        // Volunteer pressed equals: reveal the forced date and time
+        const added = parseInt(forcedInput, 10) || 0;
+        const total = (runningVal || 0) + added;
+
+        exprEl.innerText = `${fullExpression}${formatNumber(forcedInput)}`;
+        dispEl.innerText = formatNumber(total.toString());
+        fitFont();
+
+        runningVal = total;
+        currentInput = String(total);
+        pendingOp = null;
+        isWaitingForNext = true;
+        isForcing = false;
+        return;
+      }
+
+      // Normal Calculator calculation
+      const current = parseFloat(currentInput.replace(/,/g, '')) || 0;
+      if (pendingOp && runningVal !== null) {
+        const total = compute(runningVal, current, pendingOp);
+        exprEl.innerText = `${fullExpression}${formatNumber(currentInput)}`;
+        dispEl.innerText = formatNumber(total.toString());
+        fitFont();
+
+        runningVal = total;
+        currentInput = String(total);
+        pendingOp = null;
+        isWaitingForNext = true;
+      }
+    }
+
+    /**
+     * Clear / AC Pressed
+     */
+    function handleClear() {
+      clearActiveOps();
+      if (btnAC.innerText === "C") {
+        currentInput = "0";
+        dispEl.innerText = "0";
+        exprEl.innerText = fullExpression;
+        btnAC.innerText = "AC";
+      } else {
+        currentInput = "0";
+        runningVal = null;
+        pendingOp = null;
+        fullExpression = "";
+        isWaitingForNext = false;
+        isForcing = false;
+        forcedDigits = [];
+        forceIndex = 0;
+        forcedInput = "";
+        dispEl.innerText = "0";
+        exprEl.innerText = "";
+      }
+      fitFont();
+    }
+
+    /**
+     * Backspace Pressed
+     */
+    function handleBackspace() {
+      if (isForcing || isWaitingForNext) return;
+      if (currentInput.length > 1) {
+        currentInput = currentInput.slice(0, -1);
+      } else {
+        currentInput = "0";
+        btnAC.innerText = "AC";
+      }
+      dispEl.innerText = formatNumber(currentInput);
+      exprEl.innerText = fullExpression + (currentInput === "0" ? "" : formatNumber(currentInput));
+      fitFont();
+    }
+
+    /**
+     * Plus/Minus Pressed
+     */
+    function handlePlusMinus() {
+      if (isForcing || currentInput === "0") return;
+      currentInput = currentInput.startsWith("-") ? currentInput.slice(1) : "-" + currentInput;
+      dispEl.innerText = formatNumber(currentInput);
+    }
+
+    /**
+     * Percent Pressed
+     */
+    function handlePercent() {
+      if (isForcing) return;
+      const num = (parseFloat(currentInput.replace(/,/g, '')) || 0) / 100;
+      currentInput = String(num);
+      dispEl.innerText = formatNumber(currentInput);
+    }
+
+    // Attach Event Listeners
+    document.querySelectorAll(".btn-num[data-num]").forEach(btn => {
+      btn.addEventListener("click", () => handleDigit(btn.getAttribute("data-num")));
+    });
+
+    document.querySelectorAll(".btn-op[data-op]").forEach(btn => {
+      btn.addEventListener("click", () => handleOperator(btn.getAttribute("data-op")));
+    });
+
+    document.getElementById("btnEquals").addEventListener("click", handleEquals);
+    document.getElementById("btnAC").addEventListener("click", handleClear);
+    document.getElementById("btnBackspace").addEventListener("click", handleBackspace);
+    document.getElementById("btnDot").addEventListener("click", handleDecimal);
+    document.getElementById("btnPlusMinus").addEventListener("click", handlePlusMinus);
+    document.getElementById("btnPercent").addEventListener("click", handlePercent);
+  </script>
+</body>
+</html>
