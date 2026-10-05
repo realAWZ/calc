@@ -29,10 +29,10 @@
       inset: 0;
     }
 
-    /* Top Action Bar (iOS 18) */
+    /* Top Action Bar - Shifted down to match iOS 18 status bar buffer */
     .top-bar {
       position: absolute;
-      top: max(env(safe-area-inset-top, 54px), 50px);
+      top: 72px;
       left: 0;
       right: 0;
       display: flex;
@@ -41,23 +41,23 @@
       z-index: 40;
     }
     .icon-btn {
-      width: 38px;
-      height: 38px;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
-      background: #1c1c1e;
+      background: rgba(255, 255, 255, 0.16);
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
     }
     .icon-btn:active {
-      background: #2c2c2e;
+      background: rgba(255, 255, 255, 0.28);
     }
 
-    /* Keypad & Display Container - Bottom clearance dropped to exact native spec */
+    /* Keypad & Display Container */
     .calc-screen {
       position: absolute;
-      bottom: 8px; /* Drops bottom row directly above the home swipe line */
+      bottom: 8px;
       left: 0;
       right: 0;
       width: 100vw;
@@ -146,28 +146,28 @@
   <div class="top-bar">
     <!-- Clock (Secret Peek Trigger) -->
     <div class="icon-btn" onclick="peekCounter(event)">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" opacity="0.9">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" opacity="0.95">
         <circle cx="12" cy="12" r="9"/>
-        <polyline points="12 7 12 15 14"/>
+        <polyline points="12 7 12 12 15 14"/>
       </svg>
     </div>
     
     <!-- SF Symbol Calculator Icon -->
     <div class="icon-btn" onclick="configureTarget(event)">
-      <svg width="20" height="24" viewBox="0 0 20 24">
+      <svg width="21" height="25" viewBox="0 0 20 24">
         <rect x="2" y="1.5" width="16" height="21" rx="4.5" fill="#ffffff"/>
-        <rect x="4.2" y="3.8" width="11.6" height="4.2" rx="1.5" fill="#1c1c1e"/>
-        <circle cx="5.8" cy="11.2" r="1.25" fill="#1c1c1e"/>
-        <circle cx="10" cy="11.2" r="1.25" fill="#1c1c1e"/>
-        <circle cx="14.2" cy="11.2" r="1.25" fill="#1c1c1e"/>
+        <rect x="4.2" y="3.8" width="11.6" height="4.2" rx="1.5" fill="#202022"/>
+        <circle cx="5.8" cy="11.2" r="1.25" fill="#202022"/>
+        <circle cx="10" cy="11.2" r="1.25" fill="#202022"/>
+        <circle cx="14.2" cy="11.2" r="1.25" fill="#202022"/>
 
-        <circle cx="5.8" cy="14.7" r="1.25" fill="#1c1c1e"/>
-        <circle cx="10" cy="14.7" r="1.25" fill="#1c1c1e"/>
-        <circle cx="14.2" cy="14.7" r="1.25" fill="#1c1c1e"/>
+        <circle cx="5.8" cy="14.7" r="1.25" fill="#202022"/>
+        <circle cx="10" cy="14.7" r="1.25" fill="#202022"/>
+        <circle cx="14.2" cy="14.7" r="1.25" fill="#202022"/>
 
-        <circle cx="5.8" cy="18.2" r="1.25" fill="#1c1c1e"/>
-        <circle cx="10" cy="18.2" r="1.25" fill="#1c1c1e"/>
-        <circle cx="14.2" cy="18.2" r="1.25" fill="#1c1c1e"/>
+        <circle cx="5.8" cy="18.2" r="1.25" fill="#202022"/>
+        <circle cx="10" cy="18.2" r="1.25" fill="#202022"/>
+        <circle cx="14.2" cy="18.2" r="1.25" fill="#202022"/>
       </svg>
     </div>
   </div>
