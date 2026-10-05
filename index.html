@@ -2,19 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Calculator">
   <title>Calculator</title>
   <style>
-    /* Suppress third-party injector badges */
-    div[class*="netlify"], iframe[id*="netlify"], #netlify-badge {
-      display: none !important;
-      visibility: hidden !important;
-      opacity: 0 !important;
-      pointer-events: none !important;
-    }
-
     * {
       box-sizing: border-box;
       -webkit-tap-highlight-color: transparent;
@@ -27,29 +20,42 @@
     html, body {
       background: #000000;
       color: #ffffff;
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", sans-serif;
-      height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+      width: 100vw;
       height: 100dvh;
       overflow: hidden;
+      position: fixed;
+      inset: 0;
+    }
+
+    .calc-container {
       display: flex;
       flex-direction: column;
       justify-content: flex-end;
+      height: 100%;
+      width: 100%;
+      max-width: 430px;
+      margin: 0 auto;
+      padding-bottom: max(env(safe-area-inset-bottom, 20px), 16px);
     }
 
-    /* Native iOS Top Header */
+    /* Top Action Bar (iOS 18) */
     .top-bar {
       position: absolute;
-      top: env(safe-area-inset-top, 48px);
+      top: max(env(safe-area-inset-top, 48px), 44px);
       left: 0;
       right: 0;
+      max-width: 430px;
+      margin: 0 auto;
       display: flex;
       justify-content: space-between;
-      padding: 0 16px;
-      z-index: 20;
+      padding: 0 20px;
+      z-index: 30;
+      pointer-events: auto;
     }
     .icon-btn {
-      width: 44px;
-      height: 44px;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
       background: rgba(255, 255, 255, 0.12);
       display: flex;
@@ -58,8 +64,8 @@
       cursor: pointer;
     }
     .icon-btn svg {
-      width: 20px;
-      height: 20px;
+      width: 19px;
+      height: 19px;
       fill: none;
       stroke: #ffffff;
       stroke-width: 1.8;
@@ -68,12 +74,12 @@
       opacity: 0.85;
     }
     .icon-btn:active {
-      background: rgba(255, 255, 255, 0.22);
+      background: rgba(255, 255, 255, 0.25);
     }
 
-    /* Display Area - Directly matching iOS 18 tight stacking */
+    /* Display Area */
     .display-area {
-      padding: 0 20px 8px;
+      padding: 0 24px 6px;
       text-align: right;
       display: flex;
       flex-direction: column;
@@ -82,36 +88,37 @@
     }
     #expression {
       color: #8e8e93;
-      font-size: 2.1rem;
+      font-size: 1.8rem;
       font-weight: 400;
-      min-height: 2.4rem;
+      min-height: 2.2rem;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      letter-spacing: -0.5px;
+      letter-spacing: -0.3px;
       margin-bottom: 2px;
     }
     #display {
-      font-size: 5.4rem;
+      font-size: 4.8rem;
       font-weight: 300;
-      letter-spacing: -1.5px;
+      letter-spacing: -1px;
       white-space: nowrap;
       line-height: 1.05;
-      min-height: 5.5rem;
     }
 
-    /* Keypad Grid */
+    /* Keypad Grid - Locked to exact 4-column layout */
     .grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 12px;
-      padding: 0 16px max(env(safe-area-inset-bottom, 24px), 20px);
+      padding: 0 16px;
+      width: 100%;
     }
     button {
-      aspect-ratio: 1;
+      width: 100%;
+      aspect-ratio: 1 / 1;
       border-radius: 50%;
       border: none;
-      font-size: 2.35rem;
+      font-size: 2.1rem;
       font-weight: 400;
       display: flex;
       align-items: center;
@@ -124,15 +131,14 @@
       filter: brightness(1.35);
     }
 
-    /* Exact iOS 18 Palette */
     .btn-num { background: #2f2f31; color: #ffffff; }
-    .btn-func { background: #505052; color: #ffffff; font-size: 1.9rem; }
-    .btn-op { background: #ff9f0a; color: #ffffff; font-size: 2.7rem; padding-bottom: 3px; }
+    .btn-func { background: #505052; color: #ffffff; font-size: 1.75rem; }
+    .btn-op { background: #ff9f0a; color: #ffffff; font-size: 2.4rem; padding-bottom: 3px; }
     .btn-op.active { background: #ffffff; color: #ff9f0a; }
 
     .backspace-icon {
-      width: 27px;
-      height: 27px;
+      width: 25px;
+      height: 25px;
       stroke: #ffffff;
       stroke-width: 1.8;
       fill: none;
@@ -162,42 +168,44 @@
     </div>
   </div>
 
-  <div class="display-area">
-    <div id="expression"></div>
-    <div id="display">0</div>
-  </div>
+  <div class="calc-container">
+    <div class="display-area">
+      <div id="expression"></div>
+      <div id="display">0</div>
+    </div>
 
-  <div class="grid">
-    <button class="btn-func" onclick="pressBackspace()">
-      <svg class="backspace-icon" viewBox="0 0 24 24">
-        <path d="M21 4H8l-6 8 6 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/>
-        <line x1="18" y1="9" x2="12" y2="15"/>
-        <line x1="12" y1="9" x2="18" y2="15"/>
-      </svg>
-    </button>
-    <button class="btn-func" id="btn-ac" onclick="pressAC()">AC</button>
-    <button class="btn-func">%</button>
-    <button class="btn-op" id="btn-div" onclick="setOp('÷')">÷</button>
+    <div class="grid">
+      <button class="btn-func" onclick="pressBackspace()">
+        <svg class="backspace-icon" viewBox="0 0 24 24">
+          <path d="M21 4H8l-6 8 6 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/>
+          <line x1="18" y1="9" x2="12" y2="15"/>
+          <line x1="12" y1="9" x2="18" y2="15"/>
+        </svg>
+      </button>
+      <button class="btn-func" onclick="pressAC()">AC</button>
+      <button class="btn-func">%</button>
+      <button class="btn-op" id="btn-div" onclick="setOp('÷')">÷</button>
 
-    <button class="btn-num" onclick="pressKey('7')">7</button>
-    <button class="btn-num" onclick="pressKey('8')">8</button>
-    <button class="btn-num" onclick="pressKey('9')">9</button>
-    <button class="btn-op" id="btn-mul" onclick="setOp('×')">×</button>
+      <button class="btn-num" onclick="pressKey('7')">7</button>
+      <button class="btn-num" onclick="pressKey('8')">8</button>
+      <button class="btn-num" onclick="pressKey('9')">9</button>
+      <button class="btn-op" id="btn-mul" onclick="setOp('×')">×</button>
 
-    <button class="btn-num" onclick="pressKey('4')">4</button>
-    <button class="btn-num" onclick="pressKey('5')">5</button>
-    <button class="btn-num" onclick="pressKey('6')">6</button>
-    <button class="btn-op" id="btn-sub" onclick="setOp('−')">−</button>
+      <button class="btn-num" onclick="pressKey('4')">4</button>
+      <button class="btn-num" onclick="pressKey('5')">5</button>
+      <button class="btn-num" onclick="pressKey('6')">6</button>
+      <button class="btn-op" id="btn-sub" onclick="setOp('−')">−</button>
 
-    <button class="btn-num" onclick="pressKey('1')">1</button>
-    <button class="btn-num" onclick="pressKey('2')">2</button>
-    <button class="btn-num" onclick="pressKey('3')">3</button>
-    <button class="btn-op" id="btn-add" onclick="setOp('+')">+</button>
+      <button class="btn-num" onclick="pressKey('1')">1</button>
+      <button class="btn-num" onclick="pressKey('2')">2</button>
+      <button class="btn-num" onclick="pressKey('3')">3</button>
+      <button class="btn-op" id="btn-add" onclick="setOp('+')">+</button>
 
-    <button class="btn-num" onclick="pressPlusMinus()">+/-</button>
-    <button class="btn-num" onclick="pressKey('0')">0</button>
-    <button class="btn-num">.</button>
-    <button class="btn-op" onclick="evaluateResult()">=</button>
+      <button class="btn-num" onclick="pressPlusMinus()">+/-</button>
+      <button class="btn-num" onclick="pressKey('0')">0</button>
+      <button class="btn-num">.</button>
+      <button class="btn-op" onclick="evaluateResult()">=</button>
+    </div>
   </div>
 
   <script>
@@ -206,17 +214,15 @@
     let pendingOp = null;
     let exprHistory = "";
     
-    // Force Engine state
     let isForcing = false;
     let forceDigits = [];
     let forceIndex = 0;
     let forcedAccumulator = "";
 
-    // Generates the date-time integer: MMDDYYHHMM (e.g., 1004262301 for Oct 4, 2026, 11:01 PM)
     function getTargetTimestamp() {
       const now = new Date();
       const m = String(now.getMonth() + 1);
-      const d = String(now.getDate()).padStart(2, '0');
+      const d = String(now.getDate());
       const y = String(now.getFullYear()).slice(-2);
       
       let hr = now.getHours() % 12;
@@ -236,10 +242,10 @@
     function fitFont() {
       const d = document.getElementById("display");
       const len = d.innerText.length;
-      if (len > 11) d.style.fontSize = "2.8rem";
-      else if (len > 8) d.style.fontSize = "3.8rem";
-      else if (len > 6) d.style.fontSize = "4.5rem";
-      else d.style.fontSize = "5.4rem";
+      if (len > 11) d.style.fontSize = "2.5rem";
+      else if (len > 8) d.style.fontSize = "3.4rem";
+      else if (len > 6) d.style.fontSize = "4.0rem";
+      else d.style.fontSize = "4.8rem";
     }
 
     function peekCounter() {
@@ -294,11 +300,10 @@
       exprHistory += op;
       document.getElementById("expression").innerText = exprHistory;
 
-      // Lock target difference immediately upon hitting '+'
       if (op === '+') {
         const target = getTargetTimestamp();
         let delta = target - runningVal;
-        if (delta <= 0) delta = Math.abs(delta) + 1234567; // Fallback safeguard
+        if (delta <= 0) delta = Math.abs(delta) + 1000000;
 
         forceDigits = delta.toString().split('');
         forceIndex = 0;
