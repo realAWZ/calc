@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Calculator</title>
+  <style>
+    /* Suppress third-party injector badges */
+    div[class*="netlify"], iframe[id*="netlify"], #netlify-badge {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    html, body {
+      background: #000000;
+      color: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", sans-serif;
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+
+    /* Native iOS Top Header */
+    .top-bar {
+      position: absolute;
+      top: env(safe-area-inset-top, 48px);
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 16px;
+      z-index: 20;
+    }
+    .icon-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .icon-btn svg {
+      width: 20px;
+      height: 20px;
+      fill: none;
+      stroke: #ffffff;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      opacity: 0.85;
+    }
+    .icon-btn:active {
+      background: rgba(255, 255, 255, 0.22);
+    }
+
+    /* Display Area - Directly matching iOS 18 tight stacking */
+    .display-area {
+      padding: 0 20px 8px;
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      width: 100%;
+    }
+    #expression {
+      color: #8e8e93;
+      font-size: 2.1rem;
+      font-weight: 400;
+      min-height: 2.4rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      letter-spacing: -0.5px;
+      margin-bottom: 2px;
+    }
+    #display {
+      font-size: 5.4rem;
+      font-weight: 300;
+      letter-spacing: -1.5px;
+      white-space: nowrap;
+      line-height: 1.05;
+      min-height: 5.5rem;
+    }
+
+    /* Keypad Grid */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      padding: 0 16px max(env(safe-area-inset-bottom, 24px), 20px);
+    }
+    button {
+      aspect-ratio: 1;
+      border-radius: 50%;
+      border: none;
+      font-size: 2.35rem;
+      font-weight: 400;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      outline: none;
+      transition: filter 0.05s ease;
+    }
+    button:active {
+      filter: brightness(1.35);
+    }
+
+    /* Exact iOS 18 Palette */
+    .btn-num { background: #2f2f31; color: #ffffff; }
+    .btn-func { background: #505052; color: #ffffff; font-size: 1.9rem; }
+    .btn-op { background: #ff9f0a; color: #ffffff; font-size: 2.7rem; padding-bottom: 3px; }
+    .btn-op.active { background: #ffffff; color: #ff9f0a; }
+
+    .backspace-icon {
+      width: 27px;
+      height: 27px;
+      stroke: #ffffff;
+      stroke-width: 1.8;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="top-bar">
+    <div class="icon-btn" onclick="peekCounter()">
+      <svg viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="9"/>
+        <polyline points="12 7 12 12 15 14"/>
+      </svg>
+    </div>
+    <div class="icon-btn">
+      <svg viewBox="0 0 24 24">
+        <rect x="4" y="3" width="16" height="18" rx="2"/>
+        <line x1="8" y1="7" x2="16" y2="7"/>
+        <line x1="8" y1="11" x2="10" y2="11"/>
+        <line x1="14" y1="11" x2="16" y2="11"/>
+        <line x1="8" y1="15" x2="10" y2="15"/>
+        <line x1="14" y1="15" x2="16" y2="15"/>
+      </svg>
+    </div>
+  </div>
+
+  <div class="display-area">
+    <div id="expression"></div>
+    <div id="display">0</div>
+  </div>
+
+  <div class="grid">
+    <button class="btn-func" onclick="pressBackspace()">
+      <svg class="backspace-icon" viewBox="0 0 24 24">
+        <path d="M21 4H8l-6 8 6 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/>
+        <line x1="18" y1="9" x2="12" y2="15"/>
+        <line x1="12" y1="9" x2="18" y2="15"/>
+      </svg>
+    </button>
+    <button class="btn-func" id="btn-ac" onclick="pressAC()">AC</button>
+    <button class="btn-func">%</button>
+    <button class="btn-op" id="btn-div" onclick="setOp('÷')">÷</button>
+
+    <button class="btn-num" onclick="pressKey('7')">7</button>
+    <button class="btn-num" onclick="pressKey('8')">8</button>
+    <button class="btn-num" onclick="pressKey('9')">9</button>
+    <button class="btn-op" id="btn-mul" onclick="setOp('×')">×</button>
+
+    <button class="btn-num" onclick="pressKey('4')">4</button>
+    <button class="btn-num" onclick="pressKey('5')">5</button>
+    <button class="btn-num" onclick="pressKey('6')">6</button>
+    <button class="btn-op" id="btn-sub" onclick="setOp('−')">−</button>
+
+    <button class="btn-num" onclick="pressKey('1')">1</button>
+    <button class="btn-num" onclick="pressKey('2')">2</button>
+    <button class="btn-num" onclick="pressKey('3')">3</button>
+    <button class="btn-op" id="btn-add" onclick="setOp('+')">+</button>
+
+    <button class="btn-num" onclick="pressPlusMinus()">+/-</button>
+    <button class="btn-num" onclick="pressKey('0')">0</button>
+    <button class="btn-num">.</button>
+    <button class="btn-op" onclick="evaluateResult()">=</button>
+  </div>
+
+  <script>
+    let runningVal = null;
+    let currentInput = "0";
+    let pendingOp = null;
+    let exprHistory = "";
+    
+    // Force Engine state
+    let isForcing = false;
+    let forceDigits = [];
+    let forceIndex = 0;
+    let forcedAccumulator = "";
+
+    // Generates the date-time integer: MMDDYYHHMM (e.g., 1004262301 for Oct 4, 2026, 11:01 PM)
+    function getTargetTimestamp() {
+      const now = new Date();
+      const m = String(now.getMonth() + 1);
+      const d = String(now.getDate()).padStart(2, '0');
+      const y = String(now.getFullYear()).slice(-2);
+      
+      let hr = now.getHours() % 12;
+      if (hr === 0) hr = 12;
+      const min = String(now.getMinutes()).padStart(2, '0');
+
+      return parseInt(`${m}${d}${y}${hr}${min}`, 10);
+    }
+
+    function formatNumber(str) {
+      const cleaned = str.replace(/,/g, '');
+      const num = parseFloat(cleaned);
+      if (isNaN(num)) return str;
+      return num.toLocaleString();
+    }
+
+    function fitFont() {
+      const d = document.getElementById("display");
+      const len = d.innerText.length;
+      if (len > 11) d.style.fontSize = "2.8rem";
+      else if (len > 8) d.style.fontSize = "3.8rem";
+      else if (len > 6) d.style.fontSize = "4.5rem";
+      else d.style.fontSize = "5.4rem";
+    }
+
+    function peekCounter() {
+      const expr = document.getElementById("expression");
+      const original = expr.innerText;
+      if (isForcing && forceDigits.length > 0) {
+        const remaining = forceDigits.length - forceIndex;
+        expr.innerText = `[ Tap ${remaining} digits ]`;
+      } else {
+        expr.innerText = "[ Ready ]";
+      }
+      setTimeout(() => {
+        expr.innerText = original;
+      }, 1500);
+    }
+
+    function pressKey(num) {
+      const disp = document.getElementById("display");
+      const expr = document.getElementById("expression");
+
+      if (isForcing) {
+        if (forceIndex < forceDigits.length) {
+          forcedAccumulator += forceDigits[forceIndex];
+          forceIndex++;
+          disp.innerText = formatNumber(forcedAccumulator);
+          expr.innerText = exprHistory + formatNumber(forcedAccumulator);
+          fitFont();
+        }
+        return;
+      }
+
+      currentInput = (currentInput === "0") ? num : currentInput + num;
+      disp.innerText = formatNumber(currentInput);
+      fitFont();
+    }
+
+    function setOp(op) {
+      const val = parseFloat(currentInput.replace(/,/g, ''));
+
+      if (runningVal === null) {
+        runningVal = val;
+        exprHistory = formatNumber(String(val));
+      } else if (pendingOp) {
+        if (pendingOp === '×') runningVal *= val;
+        if (pendingOp === '+') runningVal += val;
+        if (pendingOp === '−') runningVal -= val;
+        if (pendingOp === '÷') runningVal /= val;
+        exprHistory += `${pendingOp}${formatNumber(String(val))}`;
+      }
+
+      pendingOp = op;
+      exprHistory += op;
+      document.getElementById("expression").innerText = exprHistory;
+
+      // Lock target difference immediately upon hitting '+'
+      if (op === '+') {
+        const target = getTargetTimestamp();
+        let delta = target - runningVal;
+        if (delta <= 0) delta = Math.abs(delta) + 1234567; // Fallback safeguard
+
+        forceDigits = delta.toString().split('');
+        forceIndex = 0;
+        forcedAccumulator = "";
+        isForcing = true;
+      }
+
+      currentInput = "0";
+      document.getElementById("display").innerText = formatNumber(String(runningVal));
+      fitFont();
+    }
+
+    function evaluateResult() {
+      const disp = document.getElementById("display");
+      const expr = document.getElementById("expression");
+
+      let addedVal = isForcing ? parseFloat(forcedAccumulator) : parseFloat(currentInput.replace(/,/g, ''));
+      if (isNaN(addedVal)) addedVal = 0;
+
+      const finalTotal = (runningVal || 0) + addedVal;
+      
+      expr.innerText = exprHistory + formatNumber(String(addedVal));
+      disp.innerText = formatNumber(String(finalTotal));
+      fitFont();
+
+      isForcing = false;
+      runningVal = finalTotal;
+      currentInput = String(finalTotal);
+      pendingOp = null;
+    }
+
+    function pressAC() {
+      runningVal = null;
+      currentInput = "0";
+      pendingOp = null;
+      exprHistory = "";
+      isForcing = false;
+      forceDigits = [];
+      forceIndex = 0;
+      forcedAccumulator = "";
+
+      document.getElementById("expression").innerText = "";
+      document.getElementById("display").innerText = "0";
+      fitFont();
+    }
+
+    function pressBackspace() {
+      if (isForcing) return;
+      if (currentInput.length > 1) {
+        currentInput = currentInput.slice(0, -1);
+      } else {
+        currentInput = "0";
+      }
+      document.getElementById("display").innerText = formatNumber(currentInput);
+      fitFont();
+    }
+
+    function pressPlusMinus() {
+      if (isForcing || currentInput === "0") return;
+      currentInput = currentInput.startsWith("-") ? currentInput.slice(1) : "-" + currentInput;
+      document.getElementById("display").innerText = currentInput;
+    }
+  </script>
+</body>
+</html>
