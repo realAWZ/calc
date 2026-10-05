@@ -28,21 +28,19 @@
       inset: 0;
     }
 
-    /* Fixed full-width container matching native iOS margin specs */
     .calc-screen {
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      height: 100%;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
       width: 100%;
       max-width: 414px;
       margin: 0 auto;
-      padding-left: 16px;
-      padding-right: 16px;
-      padding-bottom: max(env(safe-area-inset-bottom, 20px), 16px);
+      padding: 0 16px max(env(safe-area-inset-bottom, 22px), 16px);
+      height: 100%;
+      align-content: end;
     }
 
-    /* Top Native Controls (iOS 18) */
+    /* Top Native Controls */
     .top-bar {
       position: absolute;
       top: max(env(safe-area-inset-top, 48px), 44px);
@@ -66,28 +64,22 @@
       cursor: pointer;
     }
     .icon-btn svg {
-      width: 21px;
-      height: 21px;
-      fill: none;
-      stroke: #ffffff;
-      stroke-width: 1.8;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-      opacity: 0.9;
+      display: block;
     }
     .icon-btn:active {
       background: rgba(255, 255, 255, 0.25);
     }
 
-    /* Display Area - Zero horizontal padding so it hits the exact grid boundaries */
+    /* Display Area - Shares grid-column 1 / span 4 so right margin is 100% identical to the 4th column */
     .display-area {
-      padding: 0;
-      margin: 0 0 6px 0;
+      grid-column: 1 / span 4;
       text-align: right;
       display: flex;
       flex-direction: column;
       justify-content: flex-end;
       width: 100%;
+      padding: 0;
+      margin-bottom: 4px;
     }
     #expression {
       color: #8e8e93;
@@ -107,17 +99,10 @@
       white-space: nowrap;
       line-height: 1.04;
       color: #ffffff;
+      width: 100%;
     }
 
-    /* Keypad Grid */
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 12px;
-      width: 100%;
-      margin: 0;
-      padding: 0;
-    }
+    /* Button Grid Elements */
     button {
       width: 100%;
       aspect-ratio: 1 / 1;
@@ -157,22 +142,28 @@
   <div class="top-bar">
     <!-- Clock (Secret Peek Trigger) -->
     <div class="icon-btn" onclick="peekCounter(event)">
-      <svg viewBox="0 0 24 24">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" opacity="0.9">
         <circle cx="12" cy="12" r="9"/>
         <polyline points="12 7 12 12 15 14"/>
       </svg>
     </div>
-    <!-- 1:1 Apple SF Symbol Calculator Icon -->
-    <div class="icon-btn">
-      <svg viewBox="0 0 24 24">
-        <rect x="5.5" y="3.5" width="13" height="17" rx="2.5" stroke="#ffffff" stroke-width="1.8"/>
-        <rect x="7.5" y="5.5" width="9" height="2.8" rx="0.5" fill="#ffffff" stroke="none" opacity="0.9"/>
-        <rect x="7.5" y="10.5" width="3.8" height="2.2" rx="0.5" fill="#ffffff" stroke="none" opacity="0.9"/>
-        <rect x="12.7" y="10.5" width="3.8" height="2.2" rx="0.5" fill="#ffffff" stroke="none" opacity="0.9"/>
-        <rect x="7.5" y="13.7" width="3.8" height="2.2" rx="0.5" fill="#ffffff" stroke="none" opacity="0.9"/>
-        <rect x="12.7" y="13.7" width="3.8" height="2.2" rx="0.5" fill="#ffffff" stroke="none" opacity="0.9"/>
-        <rect x="7.5" y="16.9" width="3.8" height="2.2" rx="0.5" fill="#ffffff" stroke="none" opacity="0.9"/>
-        <rect x="12.7" y="16.9" width="3.8" height="2.2" rx="0.5" fill="#ffffff" stroke="none" opacity="0.9"/>
+    <!-- Exact SF Symbol Calculator Icon Matching Your Reference -->
+    <div class="icon-btn" onclick="configureTarget(event)">
+      <svg width="24" height="24" viewBox="0 0 24 24">
+        <!-- Rounded casing -->
+        <rect x="5" y="2.5" width="14" height="19" rx="3.8" fill="#ffffff"/>
+        <!-- Display window cutout -->
+        <rect x="7" y="4.5" width="10" height="3.5" rx="1.2" fill="#222224"/>
+        <!-- 3x3 Key Matrix Cutouts -->
+        <circle cx="8" cy="11" r="1.1" fill="#222224"/>
+        <circle cx="12" cy="11" r="1.1" fill="#222224"/>
+        <circle cx="16" cy="11" r="1.1" fill="#222224"/>
+        <circle cx="8" cy="14.3" r="1.1" fill="#222224"/>
+        <circle cx="12" cy="14.3" r="1.1" fill="#222224"/>
+        <circle cx="16" cy="14.3" r="1.1" fill="#222224"/>
+        <circle cx="8" cy="17.6" r="1.1" fill="#222224"/>
+        <circle cx="12" cy="17.6" r="1.1" fill="#222224"/>
+        <circle cx="16" cy="17.6" r="1.1" fill="#222224"/>
       </svg>
     </div>
   </div>
@@ -183,38 +174,36 @@
       <div id="display">0</div>
     </div>
 
-    <div class="grid">
-      <button class="btn-func" onclick="pressBackspace(event)">
-        <svg class="backspace-icon" viewBox="0 0 24 24">
-          <path d="M21 4H8l-6 8 6 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/>
-          <line x1="18" y1="9" x2="12" y2="15"/>
-          <line x1="12" y1="9" x2="18" y2="15"/>
-        </svg>
-      </button>
-      <button class="btn-func" id="btn-clear" onclick="pressClear(event)">AC</button>
-      <button class="btn-func" onclick="pressPercent(event)">%</button>
-      <button class="btn-op" id="op-div" onclick="setOp('÷', event)">÷</button>
+    <button class="btn-func" onclick="pressBackspace(event)">
+      <svg class="backspace-icon" viewBox="0 0 24 24">
+        <path d="M21 4H8l-6 8 6 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/>
+        <line x1="18" y1="9" x2="12" y2="15"/>
+        <line x1="12" y1="9" x2="18" y2="15"/>
+      </svg>
+    </button>
+    <button class="btn-func" id="btn-clear" onclick="pressClear(event)">AC</button>
+    <button class="btn-func" onclick="pressPercent(event)">%</button>
+    <button class="btn-op" id="op-div" onclick="setOp('÷', event)">÷</button>
 
-      <button class="btn-num" onclick="pressKey('7', event)">7</button>
-      <button class="btn-num" onclick="pressKey('8', event)">8</button>
-      <button class="btn-num" onclick="pressKey('9', event)">9</button>
-      <button class="btn-op" id="op-mul" onclick="setOp('×', event)">×</button>
+    <button class="btn-num" onclick="pressKey('7', event)">7</button>
+    <button class="btn-num" onclick="pressKey('8', event)">8</button>
+    <button class="btn-num" onclick="pressKey('9', event)">9</button>
+    <button class="btn-op" id="op-mul" onclick="setOp('×', event)">×</button>
 
-      <button class="btn-num" onclick="pressKey('4', event)">4</button>
-      <button class="btn-num" onclick="pressKey('5', event)">5</button>
-      <button class="btn-num" onclick="pressKey('6', event)">6</button>
-      <button class="btn-op" id="op-sub" onclick="setOp('−', event)">−</button>
+    <button class="btn-num" onclick="pressKey('4', event)">4</button>
+    <button class="btn-num" onclick="pressKey('5', event)">5</button>
+    <button class="btn-num" onclick="pressKey('6', event)">6</button>
+    <button class="btn-op" id="op-sub" onclick="setOp('−', event)">−</button>
 
-      <button class="btn-num" onclick="pressKey('1', event)">1</button>
-      <button class="btn-num" onclick="pressKey('2', event)">2</button>
-      <button class="btn-num" onclick="pressKey('3', event)">3</button>
-      <button class="btn-op" id="op-add" onclick="setOp('+', event)">+</button>
+    <button class="btn-num" onclick="pressKey('1', event)">1</button>
+    <button class="btn-num" onclick="pressKey('2', event)">2</button>
+    <button class="btn-num" onclick="pressKey('3', event)">3</button>
+    <button class="btn-op" id="op-add" onclick="setOp('+', event)">+</button>
 
-      <button class="btn-num" onclick="pressPlusMinus(event)">+/-</button>
-      <button class="btn-num" onclick="pressKey('0', event)">0</button>
-      <button class="btn-num" onclick="pressDecimal(event)">.</button>
-      <button class="btn-op" id="op-equal" onclick="evaluateResult(event)">=</button>
-    </div>
+    <button class="btn-num" onclick="pressPlusMinus(event)">+/-</button>
+    <button class="btn-num" onclick="pressKey('0', event)">0</button>
+    <button class="btn-num" onclick="pressDecimal(event)">.</button>
+    <button class="btn-op" id="op-equal" onclick="evaluateResult(event)">=</button>
   </div>
 
   <script>
@@ -225,16 +214,43 @@
     let isWaitingForNextNumber = false;
     let inEquationView = false;
 
+    // Target configuration
+    let customTarget = null; // null defaults to live timestamp (+90s)
+
     // Force engine state
     let isForcing = false;
     let forceDigits = [];
     let forceIndex = 0;
     let forcedAccumulator = "";
 
-    // Target formula projected +90 seconds (1.5 minutes) ahead
-    function getTargetTimestamp() {
-      const targetDate = new Date(Date.now() + 90 * 1000);
+    // Secret config triggered by tapping the top-right calculator icon
+    function configureTarget(e) {
+      if (e) e.stopPropagation();
+      const currentLabel = customTarget ? `Custom (${customTarget})` : "Live Timestamp (+1.5m)";
+      const input = prompt("Set Forced Target:\n- Enter any number (e.g. phone #, year, PIN)\n- Leave blank to use Live Timestamp (+1.5m)", customTarget || "");
+      
+      if (input === null) return;
+      
+      const cleaned = input.replace(/[^0-9]/g, '');
+      if (cleaned.length > 0) {
+        customTarget = parseInt(cleaned, 10);
+      } else {
+        customTarget = null;
+      }
 
+      const expr = document.getElementById("expression");
+      const original = expr.innerText;
+      expr.innerText = customTarget ? `[ Target: ${customTarget.toLocaleString()} ]` : `[ Mode: Timestamp ]`;
+      setTimeout(() => {
+        expr.innerText = original;
+      }, 1500);
+    }
+
+    function getActiveTarget() {
+      if (customTarget !== null) {
+        return customTarget;
+      }
+      const targetDate = new Date(Date.now() + 90 * 1000);
       const m = String(targetDate.getMonth() + 1);
       const d = String(targetDate.getDate()).padStart(2, '0');
       const y = String(targetDate.getFullYear()).slice(-2);
@@ -273,7 +289,7 @@
       
       if (!isForcing) {
         const current = parseFloat(currentInput.replace(/,/g, '')) || (runningVal || 0);
-        const target = getTargetTimestamp();
+        const target = getActiveTarget();
         let delta = target - current;
         if (delta <= 0) delta = Math.abs(delta) + 1000000;
         const count = delta.toString().length;
@@ -296,7 +312,6 @@
 
     function injectNextForcedDigit() {
       const disp = document.getElementById("display");
-      const expr = document.getElementById("expression");
       clearActiveOps();
 
       if (forceIndex < forceDigits.length) {
@@ -304,7 +319,7 @@
         forceIndex++;
 
         disp.innerText = fullExpression + formatNumber(forcedAccumulator);
-        expr.innerText = "";
+        document.getElementById("expression").innerText = "";
         fitFont();
       }
     }
@@ -328,13 +343,8 @@
         currentInput = (currentInput === "0") ? digit : currentInput + digit;
       }
 
-      if (inEquationView) {
-        disp.innerText = fullExpression + formatNumber(currentInput);
-        expr.innerText = "";
-      } else {
-        disp.innerText = formatNumber(currentInput);
-        expr.innerText = "";
-      }
+      disp.innerText = inEquationView ? (fullExpression + formatNumber(currentInput)) : formatNumber(currentInput);
+      expr.innerText = "";
       fitFont();
     }
 
@@ -388,7 +398,7 @@
       isWaitingForNextNumber = true;
 
       if (op === '+') {
-        const target = getTargetTimestamp();
+        const target = getActiveTarget();
         let delta = target - runningVal;
         if (delta <= 0) delta = Math.abs(delta) + 1000000;
 
