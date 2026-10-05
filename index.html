@@ -66,15 +66,16 @@
       justify-content: flex-end;
     }
 
-    /* Display Area - Directly spans entire width with zero right-side pinch */
+    /* Display Area - Locked to the exact right edge of the buttons */
     .display-area {
       width: 100%;
-      text-align: right;
-      padding-right: 4px;
-      margin-bottom: 2px;
       display: flex;
       flex-direction: column;
+      align-items: flex-end;
       justify-content: flex-end;
+      margin-bottom: 2px;
+      padding: 0;
+      overflow: hidden;
     }
     #expression {
       color: #8e8e93;
@@ -86,6 +87,8 @@
       text-overflow: ellipsis;
       letter-spacing: -0.4px;
       margin-bottom: 2px;
+      text-align: right;
+      width: 100%;
     }
     #display {
       font-size: 5.6rem;
@@ -94,7 +97,9 @@
       white-space: nowrap;
       line-height: 1.02;
       color: #ffffff;
-      width: 100%;
+      text-align: right;
+      display: block;
+      margin-right: -4px; /* Pulls glyph flush with the outer curvature of column 4 */
     }
 
     /* Button Grid */
@@ -149,7 +154,7 @@
       </svg>
     </div>
     
-    <!-- 1:1 Matching SF Symbol Calculator Icon from Image 20 -->
+    <!-- 1:1 Matching SF Symbol Calculator Icon -->
     <div class="icon-btn" onclick="configureTarget(event)">
       <svg width="20" height="24" viewBox="0 0 20 24">
         <rect x="2" y="1.5" width="16" height="21" rx="4.5" fill="#ffffff"/>
