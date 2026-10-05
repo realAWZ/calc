@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Calculator">
@@ -28,26 +28,12 @@
       inset: 0;
     }
 
-    .calc-screen {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 12px;
-      width: 100%;
-      max-width: 414px;
-      margin: 0 auto;
-      padding: 0 16px max(env(safe-area-inset-bottom, 22px), 16px);
-      height: 100%;
-      align-content: end;
-    }
-
     /* Top Native Controls */
     .top-bar {
       position: absolute;
-      top: max(env(safe-area-inset-top, 48px), 44px);
+      top: max(env(safe-area-inset-top, 50px), 46px);
       left: 0;
       right: 0;
-      max-width: 414px;
-      margin: 0 auto;
       display: flex;
       justify-content: space-between;
       padding: 0 16px;
@@ -70,16 +56,28 @@
       background: rgba(255, 255, 255, 0.25);
     }
 
-    /* Display Area - Shares grid-column 1 / span 4 so right margin is 100% identical to the 4th column */
-    .display-area {
-      grid-column: 1 / span 4;
-      text-align: right;
+    /* Screen Layout - Dynamic 100vw, no auto centering */
+    .calc-screen {
+      position: absolute;
+      bottom: max(env(safe-area-inset-bottom, 20px), 16px);
+      left: 0;
+      right: 0;
+      width: 100vw;
+      padding: 0 16px;
       display: flex;
       flex-direction: column;
       justify-content: flex-end;
+    }
+
+    /* Display Area - Matches the exact right edge of the 4th column */
+    .display-area {
       width: 100%;
+      text-align: right;
       padding: 0;
-      margin-bottom: 4px;
+      margin: 0 0 6px 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
     }
     #expression {
       color: #8e8e93;
@@ -97,12 +95,18 @@
       font-weight: 300;
       letter-spacing: -1px;
       white-space: nowrap;
-      line-height: 1.04;
+      line-height: 1.02;
       color: #ffffff;
       width: 100%;
     }
 
-    /* Button Grid Elements */
+    /* Button Grid */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      width: 100%;
+    }
     button {
       width: 100%;
       aspect-ratio: 1 / 1;
@@ -147,14 +151,11 @@
         <polyline points="12 7 12 12 15 14"/>
       </svg>
     </div>
-    <!-- Exact SF Symbol Calculator Icon Matching Your Reference -->
+    <!-- 1:1 Matching SF Symbol Calculator Icon -->
     <div class="icon-btn" onclick="configureTarget(event)">
       <svg width="24" height="24" viewBox="0 0 24 24">
-        <!-- Rounded casing -->
         <rect x="5" y="2.5" width="14" height="19" rx="3.8" fill="#ffffff"/>
-        <!-- Display window cutout -->
         <rect x="7" y="4.5" width="10" height="3.5" rx="1.2" fill="#222224"/>
-        <!-- 3x3 Key Matrix Cutouts -->
         <circle cx="8" cy="11" r="1.1" fill="#222224"/>
         <circle cx="12" cy="11" r="1.1" fill="#222224"/>
         <circle cx="16" cy="11" r="1.1" fill="#222224"/>
@@ -174,36 +175,38 @@
       <div id="display">0</div>
     </div>
 
-    <button class="btn-func" onclick="pressBackspace(event)">
-      <svg class="backspace-icon" viewBox="0 0 24 24">
-        <path d="M21 4H8l-6 8 6 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/>
-        <line x1="18" y1="9" x2="12" y2="15"/>
-        <line x1="12" y1="9" x2="18" y2="15"/>
-      </svg>
-    </button>
-    <button class="btn-func" id="btn-clear" onclick="pressClear(event)">AC</button>
-    <button class="btn-func" onclick="pressPercent(event)">%</button>
-    <button class="btn-op" id="op-div" onclick="setOp('÷', event)">÷</button>
+    <div class="grid">
+      <button class="btn-func" onclick="pressBackspace(event)">
+        <svg class="backspace-icon" viewBox="0 0 24 24">
+          <path d="M21 4H8l-6 8 6 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/>
+          <line x1="18" y1="9" x2="12" y2="15"/>
+          <line x1="12" y1="9" x2="18" y2="15"/>
+        </svg>
+      </button>
+      <button class="btn-func" id="btn-clear" onclick="pressClear(event)">AC</button>
+      <button class="btn-func" onclick="pressPercent(event)">%</button>
+      <button class="btn-op" id="op-div" onclick="setOp('÷', event)">÷</button>
 
-    <button class="btn-num" onclick="pressKey('7', event)">7</button>
-    <button class="btn-num" onclick="pressKey('8', event)">8</button>
-    <button class="btn-num" onclick="pressKey('9', event)">9</button>
-    <button class="btn-op" id="op-mul" onclick="setOp('×', event)">×</button>
+      <button class="btn-num" onclick="pressKey('7', event)">7</button>
+      <button class="btn-num" onclick="pressKey('8', event)">8</button>
+      <button class="btn-num" onclick="pressKey('9', event)">9</button>
+      <button class="btn-op" id="op-mul" onclick="setOp('×', event)">×</button>
 
-    <button class="btn-num" onclick="pressKey('4', event)">4</button>
-    <button class="btn-num" onclick="pressKey('5', event)">5</button>
-    <button class="btn-num" onclick="pressKey('6', event)">6</button>
-    <button class="btn-op" id="op-sub" onclick="setOp('−', event)">−</button>
+      <button class="btn-num" onclick="pressKey('4', event)">4</button>
+      <button class="btn-num" onclick="pressKey('5', event)">5</button>
+      <button class="btn-num" onclick="pressKey('6', event)">6</button>
+      <button class="btn-op" id="op-sub" onclick="setOp('−', event)">−</button>
 
-    <button class="btn-num" onclick="pressKey('1', event)">1</button>
-    <button class="btn-num" onclick="pressKey('2', event)">2</button>
-    <button class="btn-num" onclick="pressKey('3', event)">3</button>
-    <button class="btn-op" id="op-add" onclick="setOp('+', event)">+</button>
+      <button class="btn-num" onclick="pressKey('1', event)">1</button>
+      <button class="btn-num" onclick="pressKey('2', event)">2</button>
+      <button class="btn-num" onclick="pressKey('3', event)">3</button>
+      <button class="btn-op" id="op-add" onclick="setOp('+', event)">+</button>
 
-    <button class="btn-num" onclick="pressPlusMinus(event)">+/-</button>
-    <button class="btn-num" onclick="pressKey('0', event)">0</button>
-    <button class="btn-num" onclick="pressDecimal(event)">.</button>
-    <button class="btn-op" id="op-equal" onclick="evaluateResult(event)">=</button>
+      <button class="btn-num" onclick="pressPlusMinus(event)">+/-</button>
+      <button class="btn-num" onclick="pressKey('0', event)">0</button>
+      <button class="btn-num" onclick="pressDecimal(event)">.</button>
+      <button class="btn-op" id="op-equal" onclick="evaluateResult(event)">=</button>
+    </div>
   </div>
 
   <script>
@@ -214,42 +217,29 @@
     let isWaitingForNextNumber = false;
     let inEquationView = false;
 
-    // Target configuration
-    let customTarget = null; // null defaults to live timestamp (+90s)
+    let customTarget = null;
 
-    // Force engine state
     let isForcing = false;
     let forceDigits = [];
     let forceIndex = 0;
     let forcedAccumulator = "";
 
-    // Secret config triggered by tapping the top-right calculator icon
     function configureTarget(e) {
       if (e) e.stopPropagation();
-      const currentLabel = customTarget ? `Custom (${customTarget})` : "Live Timestamp (+1.5m)";
-      const input = prompt("Set Forced Target:\n- Enter any number (e.g. phone #, year, PIN)\n- Leave blank to use Live Timestamp (+1.5m)", customTarget || "");
-      
+      const input = prompt("Set Forced Target:\n- Enter any number\n- Leave blank to use Live Timestamp (+1.5m)", customTarget || "");
       if (input === null) return;
-      
       const cleaned = input.replace(/[^0-9]/g, '');
-      if (cleaned.length > 0) {
-        customTarget = parseInt(cleaned, 10);
-      } else {
-        customTarget = null;
-      }
+      customTarget = cleaned.length > 0 ? parseInt(cleaned, 10) : null;
 
       const expr = document.getElementById("expression");
       const original = expr.innerText;
       expr.innerText = customTarget ? `[ Target: ${customTarget.toLocaleString()} ]` : `[ Mode: Timestamp ]`;
-      setTimeout(() => {
-        expr.innerText = original;
-      }, 1500);
+      setTimeout(() => { expr.innerText = original; }, 1500);
     }
 
     function getActiveTarget() {
-      if (customTarget !== null) {
-        return customTarget;
-      }
+      if (customTarget !== null) return customTarget;
+
       const targetDate = new Date(Date.now() + 90 * 1000);
       const m = String(targetDate.getMonth() + 1);
       const d = String(targetDate.getDate()).padStart(2, '0');
@@ -299,9 +289,7 @@
         expr.innerText = `[ Tap ${remaining} digits ]`;
       }
 
-      setTimeout(() => {
-        expr.innerText = original;
-      }, 1500);
+      setTimeout(() => { expr.innerText = original; }, 1500);
     }
 
     function handleGlobalClick(e) {
@@ -317,7 +305,6 @@
       if (forceIndex < forceDigits.length) {
         forcedAccumulator += forceDigits[forceIndex];
         forceIndex++;
-
         disp.innerText = fullExpression + formatNumber(forcedAccumulator);
         document.getElementById("expression").innerText = "";
         fitFont();
