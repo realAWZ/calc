@@ -28,15 +28,18 @@
       inset: 0;
     }
 
-    .calc-wrapper {
+    /* Fixed full-width container matching native iOS margin specs */
+    .calc-screen {
       display: flex;
       flex-direction: column;
       justify-content: flex-end;
       height: 100%;
       width: 100%;
-      max-width: 420px;
+      max-width: 414px;
       margin: 0 auto;
-      padding: 0 16px max(env(safe-area-inset-bottom, 22px), 16px);
+      padding-left: 16px;
+      padding-right: 16px;
+      padding-bottom: max(env(safe-area-inset-bottom, 20px), 16px);
     }
 
     /* Top Native Controls (iOS 18) */
@@ -45,12 +48,12 @@
       top: max(env(safe-area-inset-top, 48px), 44px);
       left: 0;
       right: 0;
-      max-width: 420px;
+      max-width: 414px;
       margin: 0 auto;
       display: flex;
       justify-content: space-between;
       padding: 0 16px;
-      z-index: 30;
+      z-index: 40;
     }
     .icon-btn {
       width: 42px;
@@ -76,9 +79,10 @@
       background: rgba(255, 255, 255, 0.25);
     }
 
-    /* Display Area - Locked flush with the keypad */
+    /* Display Area - Zero horizontal padding so it hits the exact grid boundaries */
     .display-area {
-      padding: 0 0 4px 0;
+      padding: 0;
+      margin: 0 0 6px 0;
       text-align: right;
       display: flex;
       flex-direction: column;
@@ -87,23 +91,22 @@
     }
     #expression {
       color: #8e8e93;
-      font-size: 2.05rem;
+      font-size: 2.1rem;
       font-weight: 400;
       min-height: 2.4rem;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      letter-spacing: -0.3px;
+      letter-spacing: -0.4px;
       margin-bottom: 2px;
-      padding-right: 2px;
     }
     #display {
       font-size: 5.4rem;
       font-weight: 300;
-      letter-spacing: -1.2px;
+      letter-spacing: -1px;
       white-space: nowrap;
-      line-height: 1.02;
-      padding-right: 2px;
+      line-height: 1.04;
+      color: #ffffff;
     }
 
     /* Keypad Grid */
@@ -112,6 +115,8 @@
       grid-template-columns: repeat(4, 1fr);
       gap: 12px;
       width: 100%;
+      margin: 0;
+      padding: 0;
     }
     button {
       width: 100%;
@@ -147,11 +152,11 @@
     }
   </style>
 </head>
-<body>
+<body onclick="handleGlobalClick(event)">
 
   <div class="top-bar">
     <!-- Clock (Secret Peek Trigger) -->
-    <div class="icon-btn" onclick="peekCounter()">
+    <div class="icon-btn" onclick="peekCounter(event)">
       <svg viewBox="0 0 24 24">
         <circle cx="12" cy="12" r="9"/>
         <polyline points="12 7 12 12 15 14"/>
@@ -172,43 +177,43 @@
     </div>
   </div>
 
-  <div class="calc-wrapper">
+  <div class="calc-screen">
     <div class="display-area">
       <div id="expression"></div>
       <div id="display">0</div>
     </div>
 
     <div class="grid">
-      <button class="btn-func" onclick="pressBackspace()">
+      <button class="btn-func" onclick="pressBackspace(event)">
         <svg class="backspace-icon" viewBox="0 0 24 24">
           <path d="M21 4H8l-6 8 6 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/>
           <line x1="18" y1="9" x2="12" y2="15"/>
           <line x1="12" y1="9" x2="18" y2="15"/>
         </svg>
       </button>
-      <button class="btn-func" id="btn-clear" onclick="pressClear()">AC</button>
-      <button class="btn-func" onclick="pressPercent()">%</button>
-      <button class="btn-op" id="op-div" onclick="setOp('÷')">÷</button>
+      <button class="btn-func" id="btn-clear" onclick="pressClear(event)">AC</button>
+      <button class="btn-func" onclick="pressPercent(event)">%</button>
+      <button class="btn-op" id="op-div" onclick="setOp('÷', event)">÷</button>
 
-      <button class="btn-num" onclick="pressKey('7')">7</button>
-      <button class="btn-num" onclick="pressKey('8')">8</button>
-      <button class="btn-num" onclick="pressKey('9')">9</button>
-      <button class="btn-op" id="op-mul" onclick="setOp('×')">×</button>
+      <button class="btn-num" onclick="pressKey('7', event)">7</button>
+      <button class="btn-num" onclick="pressKey('8', event)">8</button>
+      <button class="btn-num" onclick="pressKey('9', event)">9</button>
+      <button class="btn-op" id="op-mul" onclick="setOp('×', event)">×</button>
 
-      <button class="btn-num" onclick="pressKey('4')">4</button>
-      <button class="btn-num" onclick="pressKey('5')">5</button>
-      <button class="btn-num" onclick="pressKey('6')">6</button>
-      <button class="btn-op" id="op-sub" onclick="setOp('−')">−</button>
+      <button class="btn-num" onclick="pressKey('4', event)">4</button>
+      <button class="btn-num" onclick="pressKey('5', event)">5</button>
+      <button class="btn-num" onclick="pressKey('6', event)">6</button>
+      <button class="btn-op" id="op-sub" onclick="setOp('−', event)">−</button>
 
-      <button class="btn-num" onclick="pressKey('1')">1</button>
-      <button class="btn-num" onclick="pressKey('2')">2</button>
-      <button class="btn-num" onclick="pressKey('3')">3</button>
-      <button class="btn-op" id="op-add" onclick="setOp('+')">+</button>
+      <button class="btn-num" onclick="pressKey('1', event)">1</button>
+      <button class="btn-num" onclick="pressKey('2', event)">2</button>
+      <button class="btn-num" onclick="pressKey('3', event)">3</button>
+      <button class="btn-op" id="op-add" onclick="setOp('+', event)">+</button>
 
-      <button class="btn-num" onclick="pressPlusMinus()">+/-</button>
-      <button class="btn-num" onclick="pressKey('0')">0</button>
-      <button class="btn-num" onclick="pressDecimal()">.</button>
-      <button class="btn-op" onclick="evaluateResult()">=</button>
+      <button class="btn-num" onclick="pressPlusMinus(event)">+/-</button>
+      <button class="btn-num" onclick="pressKey('0', event)">0</button>
+      <button class="btn-num" onclick="pressDecimal(event)">.</button>
+      <button class="btn-op" id="op-equal" onclick="evaluateResult(event)">=</button>
     </div>
   </div>
 
@@ -218,6 +223,7 @@
     let pendingOp = null;
     let fullExpression = "";
     let isWaitingForNextNumber = false;
+    let inEquationView = false;
 
     // Force engine state
     let isForcing = false;
@@ -225,20 +231,17 @@
     let forceIndex = 0;
     let forcedAccumulator = "";
 
-    // Target formula projected +2 minutes ahead: M D YY H MM
-    // e.g. Oct 4, 2026, 11:28 PM -> 10,042,611,30 -> strictly preserves '04'
+    // Target formula projected +90 seconds (1.5 minutes) ahead
     function getTargetTimestamp() {
-      const now = new Date();
-      // Target 2 minutes ahead for performance buffer
-      now.setMinutes(now.getMinutes() + 2);
+      const targetDate = new Date(Date.now() + 90 * 1000);
 
-      const m = String(now.getMonth() + 1).padStart(2, '0');
-      const d = String(now.getDate()).padStart(2, '0');
-      const y = String(now.getFullYear()).slice(-2);
+      const m = String(targetDate.getMonth() + 1);
+      const d = String(targetDate.getDate()).padStart(2, '0');
+      const y = String(targetDate.getFullYear()).slice(-2);
       
-      let hr = now.getHours() % 12;
+      let hr = targetDate.getHours() % 12;
       if (hr === 0) hr = 12;
-      const min = String(now.getMinutes()).padStart(2, '0');
+      const min = String(targetDate.getMinutes()).padStart(2, '0');
 
       return parseInt(`${m}${d}${y}${hr}${min}`, 10);
     }
@@ -253,8 +256,8 @@
     function fitFont() {
       const d = document.getElementById("display");
       const len = d.innerText.length;
-      if (len > 11) d.style.fontSize = "2.6rem";
-      else if (len > 8) d.style.fontSize = "3.4rem";
+      if (len > 12) d.style.fontSize = "2.4rem";
+      else if (len > 9) d.style.fontSize = "3.2rem";
       else if (len > 6) d.style.fontSize = "4.2rem";
       else d.style.fontSize = "5.4rem";
     }
@@ -263,7 +266,8 @@
       document.querySelectorAll('.btn-op').forEach(btn => btn.classList.remove('active'));
     }
 
-    function peekCounter() {
+    function peekCounter(e) {
+      if (e) e.stopPropagation();
       const expr = document.getElementById("expression");
       const original = expr.innerText;
       
@@ -284,20 +288,35 @@
       }, 1500);
     }
 
-    function pressKey(digit) {
+    function handleGlobalClick(e) {
+      if (isForcing && !e.target.closest('#op-equal') && !e.target.closest('.icon-btn')) {
+        injectNextForcedDigit();
+      }
+    }
+
+    function injectNextForcedDigit() {
+      const disp = document.getElementById("display");
+      const expr = document.getElementById("expression");
+      clearActiveOps();
+
+      if (forceIndex < forceDigits.length) {
+        forcedAccumulator += forceDigits[forceIndex];
+        forceIndex++;
+
+        disp.innerText = fullExpression + formatNumber(forcedAccumulator);
+        expr.innerText = "";
+        fitFont();
+      }
+    }
+
+    function pressKey(digit, e) {
+      if (e) e.stopPropagation();
       const disp = document.getElementById("display");
       const expr = document.getElementById("expression");
       document.getElementById("btn-clear").innerText = "C";
 
       if (isForcing) {
-        clearActiveOps();
-        if (forceIndex < forceDigits.length) {
-          forcedAccumulator += forceDigits[forceIndex];
-          forceIndex++;
-          disp.innerText = formatNumber(forcedAccumulator);
-          expr.innerText = fullExpression + formatNumber(forcedAccumulator);
-          fitFont();
-        }
+        injectNextForcedDigit();
         return;
       }
 
@@ -309,13 +328,22 @@
         currentInput = (currentInput === "0") ? digit : currentInput + digit;
       }
 
-      disp.innerText = formatNumber(currentInput);
-      expr.innerText = fullExpression + formatNumber(currentInput);
+      if (inEquationView) {
+        disp.innerText = fullExpression + formatNumber(currentInput);
+        expr.innerText = "";
+      } else {
+        disp.innerText = formatNumber(currentInput);
+        expr.innerText = "";
+      }
       fitFont();
     }
 
-    function pressDecimal() {
-      if (isForcing) return;
+    function pressDecimal(e) {
+      if (e) e.stopPropagation();
+      if (isForcing) {
+        injectNextForcedDigit();
+        return;
+      }
       if (isWaitingForNextNumber) {
         currentInput = "0.";
         isWaitingForNextNumber = false;
@@ -323,8 +351,7 @@
       } else if (!currentInput.includes(".")) {
         currentInput += ".";
       }
-      document.getElementById("display").innerText = formatNumber(currentInput);
-      document.getElementById("expression").innerText = fullExpression + formatNumber(currentInput);
+      document.getElementById("display").innerText = inEquationView ? (fullExpression + formatNumber(currentInput)) : formatNumber(currentInput);
     }
 
     function compute(a, b, op) {
@@ -335,7 +362,8 @@
       return b;
     }
 
-    function setOp(op) {
+    function setOp(op, e) {
+      if (e) e.stopPropagation();
       const current = parseFloat(currentInput.replace(/,/g, ''));
       clearActiveOps();
 
@@ -347,16 +375,18 @@
         runningVal = current;
       } else if (!isWaitingForNextNumber && pendingOp) {
         runningVal = compute(runningVal, current, pendingOp);
-        document.getElementById("display").innerText = formatNumber(String(runningVal));
-        fitFont();
       }
 
       pendingOp = op;
       fullExpression = `${formatNumber(String(runningVal))}${op}`;
-      document.getElementById("expression").innerText = fullExpression;
+      
+      inEquationView = true;
+      document.getElementById("display").innerText = fullExpression;
+      document.getElementById("expression").innerText = "";
+      fitFont();
+
       isWaitingForNextNumber = true;
 
-      // Arm force mode when '+' is tapped
       if (op === '+') {
         const target = getTargetTimestamp();
         let delta = target - runningVal;
@@ -369,7 +399,8 @@
       }
     }
 
-    function evaluateResult() {
+    function evaluateResult(e) {
+      if (e) e.stopPropagation();
       clearActiveOps();
       const disp = document.getElementById("display");
       const expr = document.getElementById("expression");
@@ -387,16 +418,17 @@
       currentInput = String(total);
       pendingOp = null;
       isWaitingForNextNumber = true;
+      inEquationView = false;
       isForcing = false;
       document.getElementById("btn-clear").innerText = "AC";
     }
 
-    function pressClear() {
+    function pressClear(e) {
+      if (e) e.stopPropagation();
       const btn = document.getElementById("btn-clear");
       if (btn.innerText === "C") {
         currentInput = "0";
-        document.getElementById("display").innerText = "0";
-        document.getElementById("expression").innerText = fullExpression;
+        document.getElementById("display").innerText = fullExpression || "0";
         btn.innerText = "AC";
       } else {
         runningVal = null;
@@ -404,6 +436,7 @@
         pendingOp = null;
         fullExpression = "";
         isWaitingForNextNumber = false;
+        inEquationView = false;
         isForcing = false;
         forceDigits = [];
         forceIndex = 0;
@@ -415,7 +448,8 @@
       fitFont();
     }
 
-    function pressBackspace() {
+    function pressBackspace(e) {
+      if (e) e.stopPropagation();
       if (isForcing || isWaitingForNextNumber) return;
       if (currentInput.length > 1) {
         currentInput = currentInput.slice(0, -1);
@@ -423,18 +457,19 @@
         currentInput = "0";
         document.getElementById("btn-clear").innerText = "AC";
       }
-      document.getElementById("display").innerText = formatNumber(currentInput);
-      document.getElementById("expression").innerText = fullExpression + (currentInput === "0" ? "" : formatNumber(currentInput));
+      document.getElementById("display").innerText = inEquationView ? (fullExpression + formatNumber(currentInput)) : formatNumber(currentInput);
       fitFont();
     }
 
-    function pressPlusMinus() {
+    function pressPlusMinus(e) {
+      if (e) e.stopPropagation();
       if (isForcing) return;
       currentInput = currentInput.startsWith("-") ? currentInput.slice(1) : "-" + currentInput;
       document.getElementById("display").innerText = formatNumber(currentInput);
     }
 
-    function pressPercent() {
+    function pressPercent(e) {
+      if (e) e.stopPropagation();
       if (isForcing) return;
       const num = parseFloat(currentInput.replace(/,/g, '')) / 100;
       currentInput = String(num);
